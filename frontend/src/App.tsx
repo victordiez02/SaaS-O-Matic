@@ -1,30 +1,16 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { fetchHealth, fetchPing, type HealthResponse } from "./api/client";
+import { fetchHealth } from "./api/client";
 
 type Status = "loading" | "error" | "success";
 
 export default function App() {
   const [status, setStatus] = useState<Status>("loading");
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [pings, setPings] = useState<number | null>(null);
 
   useEffect(() => {
     fetchHealth()
-      .then((data) => {
-        setHealth(data);
-        setStatus("success");
-      })
+      .then(() => setStatus("success"))
       .catch(() => setStatus("error"));
   }, []);
-
-  async function handlePing() {
-    try {
-      const data = await fetchPing();
-      setPings(data.total_pings);
-    } catch {
-      setPings(null);
-    }
-  }
 
   const backendOk = status === "success";
 
@@ -42,26 +28,12 @@ export default function App() {
           ok={backendOk}
           detail={status === "loading" ? "comprobando…" : undefined}
         />
-        <ServiceRow
-          label="Base de datos (SQLite)"
-          ok={backendOk && health?.database === "ok"}
-          detail={status === "loading" ? "comprobando…" : undefined}
-        />
       </ul>
 
       {status === "error" && (
         <p style={styles.error}>
           No se pudo contactar con el backend. ¿Está levantado en{" "}
           <code>/api</code>?
-        </p>
-      )}
-
-      <button style={styles.button} onClick={handlePing} disabled={!backendOk}>
-        Probar persistencia (POST ping)
-      </button>
-      {pings !== null && (
-        <p style={styles.pings}>
-          Registros guardados en SQLite: <strong>{pings}</strong>
         </p>
       )}
     </main>
@@ -107,15 +79,4 @@ const styles: Record<string, CSSProperties> = {
   dot: { width: 12, height: 12, borderRadius: "50%", flexShrink: 0 },
   detail: { marginLeft: "auto", color: "#94a3b8", fontSize: "0.8rem" },
   error: { color: "#fca5a5", fontSize: "0.85rem" },
-  button: {
-    width: "100%",
-    padding: "0.7rem",
-    borderRadius: "10px",
-    border: "none",
-    background: "#3b82f6",
-    color: "white",
-    fontSize: "0.95rem",
-    cursor: "pointer",
-  },
-  pings: { textAlign: "center", marginBottom: 0, color: "#cbd5e1" },
 };
