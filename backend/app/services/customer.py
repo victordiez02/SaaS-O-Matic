@@ -1,33 +1,78 @@
-"""Servicio de clientes: persistencia y lectura.
+"""Servicio de clientes: validación fiscal, persistencia y lectura.
 
-DEMO: sin lógica de negocio todavía (la validación fiscal irá en validators/).
-Mantiene el acceso a la BD fuera del router para respetar la separación de capas
-de CLAUDE.md: el router orquesta, el servicio toca los modelos.
+Orquesta el caso de uso y concentra las reglas de negocio del alta: valida el
+identificador fiscal (vía `validators/`) y garantiza la unicidad de `tax_id`. El
+router solo llama aquí; los errores de dominio se lanzan como `AppError` y los
+traduce el handler unificado de `main.py`.
 """
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError
 from app.models.customer import Customer
 from app.schemas.customer import CustomerCreate
+from app.validators.spanish_tax_id import validate_tax_id
 
 
 def create_customer(db: Session, data: CustomerCreate) -> Customer:
-    """Inserta un cliente y devuelve la fila persistida (con id y created_at)."""
+    """Valida el identificador fiscal y persiste el cliente.
+
+    - `tax_id` inválido → 422 `INVALID_TAX_ID` (estricto solo si país == ES).
+    - `tax_id` duplicado → 409 `TAX_ID_ALREADY_EXISTS`.
+    Persiste el `tax_id` ya normalizado (mayúsculas, sin espacios ni guiones).
+    """
+    validation = validate_tax_id(data.tax_id, data.country)
+    if not validation.is_valid:
+        raise AppError(
+            status_code=422,
+            code="INVALID_TAX_ID",
+            detail=f"El identificador fiscal '{validation.normalized}' no es válido: {validation.reason}.",
+        )
+
     customer = Customer(
         company_name=data.company_name,
-        tax_id=data.tax_id.strip().upper(),
+        tax_id=validation.normalized,
         email=str(data.email),
         country=data.country.strip().upper(),
         plan=data.plan,
     )
     db.add(customer)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise AppError(
+            status_code=409,
+            code="TAX_ID_ALREADY_EXISTS",
+            detail=f"Ya existe un cliente con el identificador fiscal '{validation.normalized}'.",
+        )
     db.refresh(customer)
     return customer
 
 
-def list_customers(db: Session) -> list[Customer]:
-    """Devuelve todos los clientes, del más reciente al más antiguo."""
-    stmt = select(Customer).order_by(Customer.created_at.desc())
+def search_customers(db: Session, search: str | None) -> list[Customer]:
+    """Buscador por `company_name` o `tax_id` (parcial, insensible a mayúsculas).
+
+    Sin `search` devuelve todos los clientes, del más reciente al más antiguo.
+    """
+    stmt = select(Customer).order_by(Customer.created_at.desc(), Customer.id.desc())
+    if search:
+        pattern = f"%{search}%"
+        stmt = stmt.where(
+            Customer.company_name.ilike(pattern) | Customer.tax_id.ilike(pattern)
+        )
     return list(db.scalars(stmt).all())
+
+
+def get_customer(db: Session, customer_id: int) -> Customer:
+    """Devuelve el cliente por id o lanza 404 `CUSTOMER_NOT_FOUND`."""
+    customer = db.get(Customer, customer_id)
+    if customer is None:
+        raise AppError(
+            status_code=404,
+            code="CUSTOMER_NOT_FOUND",
+            detail=f"No existe ningún cliente con id {customer_id}.",
+        )
+    return customer

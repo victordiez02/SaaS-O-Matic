@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.customers import router as customers_router
 from app.api.health import router as health_router
+from app.api.simulations import router as simulations_router
 from app.core.errors import AppError
 
 app = FastAPI(title="SaaS-O-Matic API", version="0.1.0")
@@ -54,3 +55,4 @@ def handle_validation_error(_request: Request, exc: RequestValidationError) -> J
 # queda en /api/health; los routers de negocio bajo /api/v1.
 app.include_router(health_router, prefix="/api")
 app.include_router(customers_router, prefix="/api/v1")
+app.include_router(simulations_router, prefix="/api/v1")

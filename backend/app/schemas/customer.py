@@ -1,9 +1,9 @@
-"""Schemas Pydantic del cliente corporativo.
+"""Schemas Pydantic del cliente corporativo (contrato de la API, spec 02).
 
-DEMO: contrato mínimo para dar de alta y leer clientes. Todavía SIN validación
-fiscal ni reglas de negocio (llegarán en validators/ y services/ según la spec
-01-reglas-de-negocio.md). Aquí solo se valida forma básica: campos presentes,
-email con formato y plan dentro del enum.
+La validación fiscal estricta NO vive aquí: es lógica de negocio y se aplica en
+`services/customer.py` vía `validators/spanish_tax_id.py`. Este schema solo valida
+forma básica de entrada (campos presentes, email con formato, plan del enum) y da
+forma a la salida.
 """
 
 from datetime import datetime
@@ -15,7 +15,7 @@ Plan = Literal["basic", "pro", "enterprise"]
 
 
 class CustomerCreate(BaseModel):
-    """Datos que envía el formulario de alta."""
+    """Datos que envía el alta de cliente."""
 
     company_name: str = Field(min_length=1, max_length=200)
     tax_id: str = Field(min_length=1, max_length=20)
@@ -36,3 +36,10 @@ class CustomerRead(BaseModel):
     country: str
     plan: str
     created_at: datetime
+
+
+class CustomerListResponse(BaseModel):
+    """Sobre del buscador (spec 02): lista + total de coincidencias."""
+
+    items: list[CustomerRead]
+    total: int

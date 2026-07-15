@@ -65,8 +65,14 @@ export async function createCustomer(data: CustomerCreate): Promise<Customer> {
   return res.json()
 }
 
+export interface CustomerList {
+  items: Customer[]
+  total: number
+}
+
 export async function listCustomers(): Promise<Customer[]> {
   const res = await fetch(`${API_V1}/customers`)
   if (!res.ok) return parseError(res)
-  return res.json()
+  const data: CustomerList = await res.json()
+  return data.items
 }
