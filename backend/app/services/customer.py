@@ -6,6 +6,8 @@ router solo llama aquí; los errores de dominio se lanzan como `AppError` y los
 traduce el handler unificado de `main.py`.
 """
 
+import unicodedata
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -52,18 +54,28 @@ def create_customer(db: Session, data: CustomerCreate) -> Customer:
     return customer
 
 
-def search_customers(db: Session, search: str | None) -> list[Customer]:
-    """Buscador por `company_name` o `tax_id` (parcial, insensible a mayúsculas).
+def _normalize_for_search(text: str) -> str:
+    """Pasa a minúsculas y quita los diacríticos ("Ibérica" → "iberica")."""
+    decomposed = unicodedata.normalize("NFD", text.casefold())
+    return "".join(char for char in decomposed if not unicodedata.combining(char))
 
-    Sin `search` devuelve todos los clientes, del más reciente al más antiguo.
+
+def search_customers(db: Session, search: str | None) -> list[Customer]:
+    """Buscador por `company_name` o `tax_id`: parcial, insensible a mayúsculas
+    y a acentos, del más reciente al más antiguo. Sin `search` devuelve todos.
     """
     stmt = select(Customer).order_by(Customer.created_at.desc(), Customer.id.desc())
-    if search:
-        pattern = f"%{search}%"
-        stmt = stmt.where(
-            Customer.company_name.ilike(pattern) | Customer.tax_id.ilike(pattern)
-        )
-    return list(db.scalars(stmt).all())
+    customers = list(db.scalars(stmt).all())
+
+    needle = _normalize_for_search(search).strip() if search else ""
+    if not needle:
+        return customers
+    return [
+        customer
+        for customer in customers
+        if needle in _normalize_for_search(customer.company_name)
+        or needle in _normalize_for_search(customer.tax_id)
+    ]
 
 
 def get_customer(db: Session, customer_id: int) -> Customer:

@@ -12,6 +12,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
+from app.schemas.serializers import iso_utc_z
+
 
 class SimulationCreate(BaseModel):
     """Datos de consumo que envía el formulario de simulación."""
@@ -43,6 +45,10 @@ class SimulationRead(BaseModel):
     def _as_decimal_string(self, value: Decimal) -> str:
         """Serializa los importes con 2 decimales fijos ("140.00", "0.21")."""
         return f"{value:.2f}"
+
+    @field_serializer("created_at")
+    def _serialize_created_at(self, value: datetime) -> str:
+        return iso_utc_z(value)
 
 
 class SimulationListResponse(BaseModel):

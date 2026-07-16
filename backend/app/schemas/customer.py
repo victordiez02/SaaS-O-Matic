@@ -9,7 +9,9 @@ forma a la salida.
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer
+
+from app.schemas.serializers import iso_utc_z
 
 Plan = Literal["basic", "pro", "enterprise"]
 
@@ -20,7 +22,7 @@ class CustomerCreate(BaseModel):
     company_name: str = Field(min_length=1, max_length=200)
     tax_id: str = Field(min_length=1, max_length=20)
     email: EmailStr
-    country: str = Field(min_length=2, max_length=2, description="ISO alpha-2")
+    country: str = Field(pattern=r"^[A-Za-z]{2}$", description="ISO alpha-2")
     plan: Plan
 
 
@@ -36,6 +38,10 @@ class CustomerRead(BaseModel):
     country: str
     plan: str
     created_at: datetime
+
+    @field_serializer("created_at")
+    def _serialize_created_at(self, value: datetime) -> str:
+        return iso_utc_z(value)
 
 
 class CustomerListResponse(BaseModel):
