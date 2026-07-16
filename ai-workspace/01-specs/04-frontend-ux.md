@@ -93,9 +93,10 @@ llamadas API, con **proyección de factura en tiempo real**.
 - Botón «Guardar simulación» → `POST /api/v1/simulations`. **Lo persistido es siempre
   el cálculo del backend** (fuente de verdad); la respuesta reemplaza el preview.
 
-> **Decisión de diseño — duplicación controlada de la lógica de tramos.** El preview
-> replica el algoritmo de tramos e IVA en el cliente (`src/utils/pricing.ts`) para que
-> el slider sea fluido (recalcular a 60 fps contra la API sería absurdo). Riesgo:
+> **Decisión de diseño — duplicación controlada de la lógica de tramos.** Desarrollada
+> en [ADR-006](../02-arquitectura/decisiones/ADR-006-preview-cliente-vs-backend.md). El
+> preview replica el algoritmo de tramos e IVA en el cliente (`src/utils/pricing.ts`)
+> para que el slider sea fluido (recalcular a 60 fps contra la API sería absurdo). Riesgo:
 > divergencia entre ambas implementaciones. Mitigación: (1) ambas derivan de la misma
 > spec ([01-reglas-de-negocio.md](01-reglas-de-negocio.md)) y de la skill
 > `tiered-pricing`, que fija fórmula y ejemplos; (2) los 4 ejemplos verificados (5, 15,

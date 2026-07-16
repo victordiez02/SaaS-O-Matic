@@ -31,8 +31,8 @@ export function formatMoney(amount: string | number, currency: string): string {
   return moneyFormatter(currency).format(Number(amount));
 }
 
-/** Tasa persistida ("0.21") como porcentaje ("21 %"). */
-export function formatRate(rate: string): string {
+/** Tasa persistida ("0.21") o calculada (0.21) como porcentaje ("21 %"). */
+export function formatRate(rate: string | number): string {
   return percentFormatter.format(Number(rate));
 }
 
