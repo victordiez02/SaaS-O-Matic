@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import CustomerCard from "../components/CustomerCard";
 import CustomerCardSkeleton from "../components/CustomerCardSkeleton";
 import SearchBar from "../components/SearchBar";
+import StatePanel from "../components/StatePanel";
 import {
   useCustomerSearch,
   type SearchStatus,
 } from "../hooks/useCustomerSearch";
 import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
 
 const SKELETON_COUNT = 4;
 
@@ -38,21 +38,17 @@ export default function Dashboard() {
       )}
 
       {status === "error" && (
-        <Card className="items-center gap-2 border border-dashed border-border px-6 py-14 text-center ring-0">
-          <h2 className="m-0 text-[1.0625rem] font-bold tracking-[-0.02em]">
-            El índice no responde
-          </h2>
-          <p className="m-0 max-w-[42ch] text-sm leading-normal text-muted-foreground">
-            No se pudo contactar con el backend. Comprueba que está levantado y
-            vuelve a intentarlo.
-          </p>
+        <StatePanel
+          title="El índice no responde"
+          description="No se pudo contactar con el backend. Comprueba que está levantado y vuelve a intentarlo."
+        >
           {error && (
             <p className="m-0 font-mono text-xs text-destructive">{error}</p>
           )}
           <Button type="button" onClick={retry} className="mt-2.5">
             Reintentar
           </Button>
-        </Card>
+        </StatePanel>
       )}
 
       {status === "success" &&
@@ -103,20 +99,19 @@ function StatusLine({
 function EmptyState({ term }: { term: string }) {
   const searching = term.length > 0;
   return (
-    <Card className="items-center gap-2 border border-dashed border-border px-6 py-14 text-center ring-0">
-      <h2 className="m-0 text-[1.0625rem] font-bold tracking-[-0.02em]">
-        {searching ? `Sin resultados para «${term}»` : "El índice está vacío"}
-      </h2>
-      <p className="m-0 max-w-[42ch] text-sm leading-normal text-muted-foreground">
-        {searching
+    <StatePanel
+      title={searching ? `Sin resultados para «${term}»` : "El índice está vacío"}
+      description={
+        searching
           ? "Ninguna ficha coincide con ese nombre ni con ese identificador fiscal."
-          : "Aquí aparecerán las fichas de los clientes que registres."}
-      </p>
+          : "Aquí aparecerán las fichas de los clientes que registres."
+      }
+    >
       <Button asChild className="mt-2.5">
         <Link to="/customers/new">
           {searching ? "Registrar cliente nuevo" : "Registrar el primer cliente"}
         </Link>
       </Button>
-    </Card>
+    </StatePanel>
   );
 }
