@@ -1,7 +1,18 @@
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
+
 import { ApiError } from "../api/client";
 import { createCustomer } from "../api/customers";
 import type { Customer, CustomerCreate, Plan } from "../api/types";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type SubmitState = "idle" | "loading" | "error" | "success";
 
@@ -24,6 +35,13 @@ export default function CustomerForm({
   const [form, setForm] = useState<CustomerCreate>(EMPTY);
   const [state, setState] = useState<SubmitState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const ids = {
+    companyName: useId(),
+    taxId: useId(),
+    email: useId(),
+    country: useId(),
+    plan: useId(),
+  };
 
   function update<K extends keyof CustomerCreate>(
     key: K,
@@ -52,121 +70,86 @@ export default function CustomerForm({
   }
 
   return (
-    <form style={styles.form} onSubmit={handleSubmit}>
-      <Field label="Nombre de empresa">
-        <input
-          style={styles.input}
+    <form className="grid gap-4" onSubmit={handleSubmit}>
+      <div className="grid gap-1.5">
+        <Label htmlFor={ids.companyName}>Nombre de empresa</Label>
+        <Input
+          id={ids.companyName}
           value={form.company_name}
           onChange={(e) => update("company_name", e.target.value)}
           required
           placeholder="Acme Ibérica S.L."
         />
-      </Field>
+      </div>
 
-      <Field label="Identificador fiscal (DNI/NIF/CIF)">
-        <input
-          style={styles.input}
+      <div className="grid gap-1.5">
+        <Label htmlFor={ids.taxId}>Identificador fiscal (DNI/NIF/CIF)</Label>
+        <Input
+          id={ids.taxId}
           value={form.tax_id}
           onChange={(e) => update("tax_id", e.target.value)}
           required
           placeholder="B12345674"
         />
-      </Field>
+      </div>
 
-      <Field label="Email de contacto">
-        <input
-          style={styles.input}
+      <div className="grid gap-1.5">
+        <Label htmlFor={ids.email}>Email de contacto</Label>
+        <Input
+          id={ids.email}
           type="email"
           value={form.email}
           onChange={(e) => update("email", e.target.value)}
           required
           placeholder="cfo@acme.es"
         />
-      </Field>
+      </div>
 
-      <div style={styles.row}>
-        <Field label="País (ISO)">
-          <input
-            style={styles.input}
+      <div className="flex gap-4">
+        <div className="grid flex-1 gap-1.5">
+          <Label htmlFor={ids.country}>País (ISO)</Label>
+          <Input
+            id={ids.country}
             value={form.country}
             onChange={(e) => update("country", e.target.value.toUpperCase())}
             required
             maxLength={2}
             placeholder="ES"
           />
-        </Field>
+        </div>
 
-        <Field label="Plan">
-          <select
-            style={styles.input}
+        <div className="grid flex-1 gap-1.5">
+          <Label htmlFor={ids.plan}>Plan</Label>
+          <Select
             value={form.plan}
-            onChange={(e) => update("plan", e.target.value as Plan)}
+            onValueChange={(value) => update("plan", value as Plan)}
           >
-            {PLANS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </Field>
+            <SelectTrigger id={ids.plan} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PLANS.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <button
-        style={styles.button}
-        type="submit"
-        disabled={state === "loading"}
-      >
+      <Button type="submit" disabled={state === "loading"} className="mt-1">
         {state === "loading" ? "Guardando…" : "Registrar cliente"}
-      </button>
+      </Button>
 
-      {state === "error" && error && <p style={styles.error}>{error}</p>}
+      {state === "error" && error && (
+        <p className="m-0 text-sm text-destructive">{error}</p>
+      )}
       {state === "success" && (
-        <p style={styles.success}>Cliente registrado y guardado en SQLite ✓</p>
+        <p className="m-0 text-sm text-foreground">
+          Cliente registrado y guardado en SQLite ✓
+        </p>
       )}
     </form>
   );
 }
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label style={styles.field}>
-      <span style={styles.label}>{label}</span>
-      {children}
-    </label>
-  );
-}
-
-const styles: Record<string, CSSProperties> = {
-  form: { display: "grid", gap: "0.9rem" },
-  field: { display: "grid", gap: "0.3rem" },
-  row: { display: "flex", gap: "0.9rem" },
-  label: { fontSize: "0.8rem", color: "#94a3b8" },
-  input: {
-    padding: "0.55rem 0.7rem",
-    borderRadius: "8px",
-    border: "1px solid #334155",
-    background: "#0f172a",
-    color: "#e2e8f0",
-    fontSize: "0.9rem",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  button: {
-    marginTop: "0.3rem",
-    padding: "0.7rem",
-    borderRadius: "10px",
-    border: "none",
-    background: "#3b82f6",
-    color: "white",
-    fontSize: "0.95rem",
-    cursor: "pointer",
-  },
-  error: { color: "#fca5a5", fontSize: "0.85rem", margin: 0 },
-  success: { color: "#86efac", fontSize: "0.85rem", margin: 0 },
-};

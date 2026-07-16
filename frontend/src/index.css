@@ -1,17 +1,129 @@
-:root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* El toggle de tema pone data-theme en <html> (ver index.html y useTheme),
+   así que el variant "dark" de Tailwind cuelga de ese atributo en vez de la
+   clase .dark que trae shadcn por defecto. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Tokens de diseño: "papel de registro" — gris frío, tinta marina y un único
+   acento burdeos de sello oficial, reservado a la clave fiscal, el foco y las
+   coincidencias de búsqueda. El oscuro es el mismo registro de noche: reescribe
+   los mismos tokens. Los nombres semánticos de shadcn (--background, --primary…)
+   son solo alias sobre estos, así que cambian de tema gratis. */
+
+:root,
+:root[data-theme="light"] {
+  --paper: #edf0f4;
+  --card: #ffffff;
+  --ink: #131c2e;
+  --slate: #5a6a83;
+  --rule: #d3dae4;
+  --sello: #7a1f2b;
+
+  color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
+:root[data-theme="dark"] {
+  --paper: #0f1420;
+  --card: #1a2233;
+  --ink: #eef1f7;
+  --slate: #8993ab;
+  --rule: #2e3750;
+  --sello: #e2596c;
+
+  color-scheme: dark;
+}
+
+:root {
+  /* Archivo: grotesca institucional pensada para impresión y tablas.
+     IBM Plex Mono: solo datos (identificadores fiscales, plan). */
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --popover: var(--card);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--card);
+  --secondary-foreground: var(--ink);
+  --muted: var(--rule);
+  --muted-foreground: var(--slate);
+  --accent: var(--rule);
+  --accent-foreground: var(--ink);
+  --destructive: var(--sello);
+  --border: var(--rule);
+  --input: var(--rule);
+  --ring: var(--sello);
+  --radius: 0.25rem;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: #0f172a;
-  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sello);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-display);
+  --font-mono: var(--font-data);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
