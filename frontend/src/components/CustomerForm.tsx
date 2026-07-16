@@ -1,11 +1,7 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
-import {
-  createCustomer,
-  ApiError,
-  type Customer,
-  type CustomerCreate,
-  type Plan,
-} from "../api/client";
+import { ApiError } from "../api/client";
+import { createCustomer } from "../api/customers";
+import type { Customer, CustomerCreate, Plan } from "../api/types";
 
 type SubmitState = "idle" | "loading" | "error" | "success";
 
@@ -20,7 +16,6 @@ const EMPTY: CustomerCreate = {
 const PLANS: Plan[] = ["basic", "pro", "enterprise"];
 
 // DEMO: alta de cliente para verificar el flujo formulario → API → SQLite.
-// Sin validación fiscal todavía; eso llegará en la capa validators/ del backend.
 export default function CustomerForm({
   onCreated,
 }: {
@@ -30,7 +25,10 @@ export default function CustomerForm({
   const [state, setState] = useState<SubmitState>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  function update<K extends keyof CustomerCreate>(key: K, value: CustomerCreate[K]) {
+  function update<K extends keyof CustomerCreate>(
+    key: K,
+    value: CustomerCreate[K],
+  ) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -45,7 +43,11 @@ export default function CustomerForm({
       onCreated(created);
     } catch (err) {
       setState("error");
-      setError(err instanceof ApiError ? err.message : "Error de red. ¿Backend levantado?");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Error de red. ¿Backend levantado?",
+      );
     }
   }
 
@@ -109,7 +111,11 @@ export default function CustomerForm({
         </Field>
       </div>
 
-      <button style={styles.button} type="submit" disabled={state === "loading"}>
+      <button
+        style={styles.button}
+        type="submit"
+        disabled={state === "loading"}
+      >
         {state === "loading" ? "Guardando…" : "Registrar cliente"}
       </button>
 
@@ -121,7 +127,13 @@ export default function CustomerForm({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label style={styles.field}>
       <span style={styles.label}>{label}</span>

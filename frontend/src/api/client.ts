@@ -1,78 +1,68 @@
-// Único lugar del frontend donde se hacen llamadas HTTP (regla de arquitectura).
+// Núcleo del cliente HTTP
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
-// Los endpoints de negocio viven bajo /api/v1 (ver spec 02-contrato-api.md);
-// el health de liveness queda en /api/health.
-const API_V1 = `${BASE_URL}/v1`
+/** Liveness del backend. */
+export const API_BASE = BASE_URL;
+/** Endpoints de negocio (spec 02). Sin barra final: `/customers/` responde 307. */
+export const API_V1 = `${BASE_URL}/v1`;
 
-export interface HealthResponse {
-  status: string
-  service: string
+/** Error de validación por campo que acompaña a los 422 `VALIDATION_ERROR`. */
+export interface FieldError {
+  field: string;
+  message: string;
 }
 
-export async function fetchHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${BASE_URL}/health`)
-  if (!res.ok) throw new Error(`El backend respondió ${res.status}`)
-  return res.json()
-}
-
-// --- Clientes -------------------------------------------------------------
-
-export type Plan = 'basic' | 'pro' | 'enterprise'
-
-export interface CustomerCreate {
-  company_name: string
-  tax_id: string
-  email: string
-  country: string
-  plan: Plan
-}
-
-export interface Customer extends CustomerCreate {
-  id: number
-  created_at: string
-}
-
-// Error de la API en el formato unificado {detail, code} de CLAUDE.md.
+/**
+ * Error de la API en el formato unificado `{detail, code}`
+ */
 export class ApiError extends Error {
-  code: string
-  constructor(detail: string, code: string) {
-    super(detail)
-    this.code = code
+  readonly code: string;
+  readonly status: number;
+  readonly errors: FieldError[];
+
+  constructor(
+    detail: string,
+    code: string,
+    status: number,
+    errors: FieldError[] = [],
+  ) {
+    super(detail);
+    this.name = "ApiError";
+    this.code = code;
+    this.status = status;
+    this.errors = errors;
   }
 }
 
-async function parseError(res: Response): Promise<never> {
-  let detail = `El backend respondió ${res.status}`
-  let code = 'UNKNOWN'
+async function toApiError(res: Response): Promise<ApiError> {
+  let detail = `El backend respondió ${res.status}`;
+  let code = "UNKNOWN";
+  let errors: FieldError[] = [];
   try {
-    const body = await res.json()
-    if (body?.detail) detail = body.detail
-    if (body?.code) code = body.code
+    const body = await res.json();
+    if (typeof body?.detail === "string") detail = body.detail;
+    if (typeof body?.code === "string") code = body.code;
+    if (Array.isArray(body?.errors)) errors = body.errors;
   } catch {
-    // respuesta sin cuerpo JSON: nos quedamos con el mensaje por defecto
+    // Respuesta sin cuerpo JSON (p. ej. un 502 del proxy): vale el mensaje por defecto.
   }
-  throw new ApiError(detail, code)
+  return new ApiError(detail, code, res.status, errors);
 }
 
-export async function createCustomer(data: CustomerCreate): Promise<Customer> {
-  const res = await fetch(`${API_V1}/customers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!res.ok) return parseError(res)
-  return res.json()
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, init);
+  if (!res.ok) throw await toApiError(res);
+  return res.json() as Promise<T>;
 }
 
-export interface CustomerList {
-  items: Customer[]
-  total: number
+export function get<T>(path: string): Promise<T> {
+  return request<T>(path);
 }
 
-export async function listCustomers(): Promise<Customer[]> {
-  const res = await fetch(`${API_V1}/customers`)
-  if (!res.ok) return parseError(res)
-  const data: CustomerList = await res.json()
-  return data.items
+export function post<T>(path: string, body: unknown): Promise<T> {
+  return request<T>(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }

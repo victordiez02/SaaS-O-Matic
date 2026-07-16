@@ -21,3 +21,5 @@ dist/
 
 .pnpm-store/
 .vite/
+
+.env

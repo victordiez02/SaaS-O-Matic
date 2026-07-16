@@ -1,5 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { fetchHealth, listCustomers, type Customer } from "./api/client";
+import { searchCustomers } from "./api/customers";
+import { fetchHealth } from "./api/health";
+import type { Customer } from "./api/types";
 import CustomerForm from "./components/CustomerForm";
 
 type Status = "loading" | "error" | "success";
@@ -12,9 +14,9 @@ export default function App() {
     fetchHealth()
       .then(() => {
         setStatus("success");
-        return listCustomers();
+        return searchCustomers();
       })
-      .then((items) => setCustomers(items))
+      .then((data) => setCustomers(data.items))
       .catch(() => setStatus("error"));
   }, []);
 
