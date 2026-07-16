@@ -27,16 +27,23 @@ export interface UseExchangeRates {
   loading: boolean;
   error: string | null;
   convert: (amountEUR: number, currency: string) => number; // EUR a la divisa pedida
+  retry: () => void;
 }
 
 export function useExchangeRates(): UseExchangeRates {
   const [rates, setRates] = useState<ExchangeRates | null>(cachedRates);
   const [loading, setLoading] = useState(cachedRates === null);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (cachedRates) return;
+    if (cachedRates) {
+      setRates(cachedRates);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
+    setLoading(true);
     loadRates()
       .then((loaded) => {
         if (!cancelled) setRates(loaded);
@@ -56,6 +63,14 @@ export function useExchangeRates(): UseExchangeRates {
     return () => {
       cancelled = true;
     };
+  }, [attempt]);
+
+  /** Vuelve a pedir los tipos tras un fallo: invalida la caché y relanza el efecto. */
+  const retry = useCallback(() => {
+    cachedRates = null;
+    inFlight = null;
+    setError(null);
+    setAttempt((n) => n + 1);
   }, []);
 
   const convert = useCallback(
@@ -67,5 +82,5 @@ export function useExchangeRates(): UseExchangeRates {
     [rates],
   );
 
-  return { rates, loading, error, convert };
+  return { rates, loading, error, convert, retry };
 }

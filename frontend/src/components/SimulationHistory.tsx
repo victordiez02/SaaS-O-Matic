@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 
 import type { Simulation } from "../api/types";
+import { useCurrency } from "../context/CurrencyContext";
 import type { Resource } from "../hooks/useResource";
-import { formatDateTime, formatMoney, formatRate } from "../utils/format";
+import { formatDateTime, formatRate } from "../utils/format";
 import StatePanel from "./StatePanel";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
@@ -59,6 +60,8 @@ export default function SimulationHistory({
 }
 
 function SimulationTable({ simulations }: { simulations: Simulation[] }) {
+  const { formatAmount } = useCurrency();
+
   return (
     <Card className="overflow-x-auto border border-border p-0 [--card-spacing:0px]">
       <table className="w-full min-w-[34rem] border-collapse text-sm">
@@ -84,17 +87,18 @@ function SimulationTable({ simulations }: { simulations: Simulation[] }) {
                 {simulation.active_users}
               </Td>
               <Td className="text-right font-mono tabular-nums">
-                {formatMoney(simulation.base_cost, simulation.currency)}
+                {formatAmount(simulation.base_cost)}
               </Td>
               <Td className="text-right font-mono tabular-nums">
-                {formatMoney(simulation.tax_amount, simulation.currency)}
-                {/* La tasa es la congelada en la fila, no la de hoy (spec 02). */}
+                {formatAmount(simulation.tax_amount)}
+                {/* La tasa es la congelada en la fila, no la de hoy (spec 02).
+                    No se convierte: es un porcentaje, no un importe. */}
                 <span className="ml-1.5 text-[0.6875rem] text-muted-foreground">
                   {formatRate(simulation.tax_rate)}
                 </span>
               </Td>
               <Td className="text-right font-mono font-bold tabular-nums">
-                {formatMoney(simulation.total_cost, simulation.currency)}
+                {formatAmount(simulation.total_cost)}
               </Td>
             </tr>
           ))}

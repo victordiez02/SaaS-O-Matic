@@ -26,8 +26,8 @@ const percentFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 2,
 });
 
-/** Importe decimal del backend ("140.00") con el símbolo de su divisa. */
-export function formatMoney(amount: string, currency: string): string {
+/** Importe con el símbolo de su divisa. Admite el string decimal del backend ("140.00"). */
+export function formatMoney(amount: string | number, currency: string): string {
   return moneyFormatter(currency).format(Number(amount));
 }
 
