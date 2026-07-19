@@ -76,17 +76,16 @@ function NewSimulationView({ customerId }: { customerId: number }) {
           <SimulationForm customer={customer.data} onSaved={setSaved} />
 
           {saved && (
+            // Volver es una acción explícita, no un salto automático.
             <div className="flex flex-wrap items-center gap-2.5 border-t border-border pt-3.5">
               <p className="m-0 text-sm text-muted-foreground">
-                Guardada en el historial del cliente.
+                Guardada en el historial de {customer.data.company_name}.
               </p>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => navigate(`/customers/${customerId}`)}
               >
-                Ver historial
+                Ver en el historial
               </Button>
             </div>
           )}

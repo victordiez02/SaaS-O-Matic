@@ -21,11 +21,23 @@ export default function SimulationHistory({
 }) {
   const { status, data, retry } = history;
 
+  const emptyStateShown =
+    status === "success" && (!data || data.items.length === 0);
+
   return (
     <section className="grid gap-2.5">
-      <h2 className="m-0 mt-2 text-[1.0625rem] font-bold tracking-[-0.02em]">
-        Simulaciones guardadas
-      </h2>
+      <div className="mt-2 flex items-center justify-between gap-4">
+        <h2 className="m-0 text-[1.0625rem] font-bold tracking-[-0.02em]">
+          Simulaciones guardadas
+        </h2>
+        {!emptyStateShown && (
+          <Button asChild size="sm" variant="outline">
+            <Link to={`/customers/${customerId}/simulate`}>
+              Nueva simulación
+            </Link>
+          </Button>
+        )}
+      </div>
 
       {status === "loading" && <HistorySkeleton />}
 
