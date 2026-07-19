@@ -47,7 +47,7 @@ Estados del selector:
 
 **Ruta:** `/`. Buscador por nombre de empresa o identificador fiscal + resultados.
 
-- Input con **debounce de 300 ms** → `GET /api/v1/customers?search=...`.
+- Input con **debounce de ~350 ms** → `GET /api/v1/customers?search=...`.
 - Cada resultado navega al detalle del cliente.
 
 | Estado | Cuándo | UI |

@@ -174,7 +174,7 @@ tipos incorrectos).
 Buscador del dashboard. Sin `search` devuelve todos los clientes (herramienta interna,
 volumen bajo; la paginación se documenta como límite conocido).
 
-- Búsqueda parcial e insensible a mayúsculas sobre `company_name` **y** `tax_id`.
+- Búsqueda parcial e insensible a mayúsculas y a acentos sobre `company_name` **y** `tax_id`.
 - Sin resultados → `200` con lista vacía (no 404: la búsqueda vacía no es un error).
 
 **Response `200 OK`** para `GET /api/v1/customers?search=acme`:

@@ -5,8 +5,8 @@
   (Spec-Driven Development) y la Fase 2 (Arquitectura) del plan maestro, sin escribir
   aún código de aplicación. Además, extraer la lógica de negocio reutilizable a skills.
 
-- **Specs de partida:** `enunciado.md` (requisitos oficiales), `plan-saas-o-matic.md`
-  (plan de 8 fases y chuleta técnica), `.claude/CLAUDE.md` (directrices de
+- **Specs de partida:** `enunciado.md` (requisitos oficiales), el plan de 8 fases (hoy
+  recogido en [`../INDICE.md`](../INDICE.md)) y `.claude/CLAUDE.md` (directrices de
   arquitectura y calidad).
 
 - **Prompts clave usados:**
@@ -15,8 +15,7 @@
      índice antes de generar nada.
   2. Ajuste tras el índice: enfoque híbrido specs + skills (extraer validación fiscal
      y tarificación a `.claude/skills/` usando el patrón de /skill-creator, dejando
-     las specs como fuente de verdad) y creación de una bitácora narrada en primera
-     persona.
+     las specs como fuente de verdad).
 
 - **Qué generó la IA:**
   - `ai-workspace/01-specs/`: `00-vision-general.md`, `01-reglas-de-negocio.md`
@@ -28,7 +27,6 @@
     capas, SQLite+SQLAlchemy, caché de tipos de cambio).
   - Skills: `.claude/skills/spanish-tax-id-validator/SKILL.md` y
     `.claude/skills/tiered-pricing/SKILL.md`, derivadas de la spec 01.
-  - `ai-workspace/bitacora.md` (diario narrado del proyecto).
 
 - **Decisiones de diseño cerradas por escrito** (ambigüedades del enunciado):
   1. Endpoints GET no especificados → se proponen buscador, detalle e historial
@@ -45,7 +43,7 @@
 - **Qué corregí/rechacé y por qué:** el índice inicial de la IA proponía solo specs
   markdown; pedí además extraer la validación fiscal y el pricing a skills para que
   backend y preview del frontend apliquen exactamente el mismo algoritmo de forma
-  auditable, y una bitácora narrada como registro legible del proceso.
+  auditable.
 
 - **Resultado:** 14 ficheros de documentación/skills creados; cero código de
   aplicación (según el alcance acordado). Tests aún no aplican: las tablas de casos
