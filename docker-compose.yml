@@ -1,18 +1,32 @@
 services:
+  # Único punto que crea el esquema (ver ADR-005): corre scripts/init_db.py y
+  # termina. `backend` no arranca hasta que este servicio finaliza con éxito.
+  init-db:
+    build: ./backend
+    container_name: saas-init-db
+    environment:
+      - DATABASE_PATH=${DATABASE_PATH:-/app/data/saas_o_matic.db}
+    volumes:
+      - ./data:/app/data
+    command: ["python", "-m", "scripts.init_db"]
+
   backend:
     build: ./backend
     container_name: saas-backend
     environment:
-      - DATABASE_PATH=/app/data/saas_o_matic.db
+      - DATABASE_PATH=${DATABASE_PATH:-/app/data/saas_o_matic.db}
     volumes:
       - ./data:/app/data
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
 
   frontend:
     build: ./frontend
     container_name: saas-frontend
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8080}:80"
     depends_on:
       - backend
