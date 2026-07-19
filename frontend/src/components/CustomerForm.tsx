@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "./ui/select";
 
-type SubmitState = "idle" | "loading" | "error" | "success";
+type SubmitState = "idle" | "loading" | "error";
 
 const EMPTY: CustomerCreate = {
   company_name: "",
@@ -26,7 +26,7 @@ const EMPTY: CustomerCreate = {
 
 const PLANS: Plan[] = ["basic", "pro", "enterprise"];
 
-// DEMO: alta de cliente para verificar el flujo formulario → API → SQLite.
+/** Alta de cliente corporativo (spec 02): valida y persiste vía `POST /customers`. */
 export default function CustomerForm({
   onCreated,
 }: {
@@ -56,7 +56,6 @@ export default function CustomerForm({
     setError(null);
     try {
       const created = await createCustomer(form);
-      setState("success");
       setForm(EMPTY);
       onCreated(created);
     } catch (err) {
@@ -144,11 +143,6 @@ export default function CustomerForm({
 
       {state === "error" && error && (
         <p className="m-0 text-sm text-destructive">{error}</p>
-      )}
-      {state === "success" && (
-        <p className="m-0 text-sm text-foreground">
-          Cliente registrado y guardado en SQLite ✓
-        </p>
       )}
     </form>
   );

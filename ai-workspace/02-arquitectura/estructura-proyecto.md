@@ -41,20 +41,24 @@ Reglas que hacen cumplir la separación:
 ```
 backend/
 ├── Dockerfile
-├── pyproject.toml
+├── requirements.txt
 ├── app/
 │   ├── main.py              # creación de la app, registro de routers y handlers de error
-│   ├── api/                 # routers: customers.py, simulations.py
-│   ├── core/                # config y constantes de negocio (tramos, tabla de IVA)
-│   ├── schemas/             # Pydantic: customer.py, simulation.py, error.py
-│   ├── services/            # pricing.py (tramos + IVA)
+│   ├── api/                 # routers: customers.py, simulations.py, health.py
+│   ├── core/                # config, errors.py (AppError) y constantes de negocio (tramos, tabla de IVA)
+│   ├── schemas/             # Pydantic: customer.py, simulation.py, serializers.py
+│   ├── services/            # customer.py, simulation.py, pricing.py (tramos + IVA)
 │   ├── validators/          # spanish_tax_id.py (DNI/NIE/CIF)
 │   ├── models/              # SQLAlchemy: customer.py, simulation.py
-│   └── db/                  # engine, session, init, PRAGMA foreign_keys
+│   └── db/                  # base declarativa, engine, session, PRAGMA foreign_keys
+├── scripts/
+│   └── init_db.py           # único punto que crea el esquema (ADR-005)
 └── tests/
     ├── test_tax_id_validator.py   # tabla de casos de la spec 01 §3.4
     ├── test_tiered_pricing.py     # ejemplos 5/15/50/120 de la spec 01 §1
-    └── test_api.py                # integración: endpoints + errores unificados
+    ├── test_customers_api.py      # integración: alta, búsqueda, detalle
+    ├── test_simulations_api.py    # integración: creación e historial
+    └── test_error_format_api.py   # contrato {detail, code, errors} transversal
 
 frontend/
 ├── Dockerfile
@@ -62,9 +66,10 @@ frontend/
 └── src/
     ├── api/                 # ÚNICO lugar con fetch: cliente backend + er-api
     ├── components/          # CustomerCard, SearchBar, SimulationForm, CurrencySelector…
-    ├── hooks/               # useExchangeRates, useCustomerSearch, useSimulation
-    ├── pages/               # Dashboard, CustomerDetail, SimulationPage
-    └── utils/               # pricing.ts (preview de tramos), formatCurrency.ts
+    ├── context/             # CurrencyContext (divisa seleccionada + conversión)
+    ├── hooks/               # useExchangeRates, useCustomerSearch, useResource
+    ├── pages/               # Dashboard, CustomerDetail, NewCustomer, NewSimulation
+    └── utils/               # pricing.ts (preview de tramos), format.ts (moneda/fecha/tasa)
 ```
 
 ## Por qué esta estructura evita archivos masivos

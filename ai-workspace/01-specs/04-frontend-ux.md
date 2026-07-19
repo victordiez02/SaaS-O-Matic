@@ -4,6 +4,11 @@ Frontend React (Vite, pnpm). Reglas transversales (de `CLAUDE.md`): componentes
 pequeños y tipados, llamadas HTTP solo en `src/api/`, y todo estado de red modelado
 explícitamente como `loading / error / success`.
 
+> **Extra no pedido por el enunciado — modo claro/oscuro.** Toggle de tema global
+> (`hooks/useTheme.ts`), persistido en `localStorage` y sin parpadeo inicial (script en
+> `index.html`). Es comodidad de uso para el equipo comercial, no una vista obligatoria;
+> no afecta a ninguna regla de negocio.
+
 ## Principio rector: EUR como moneda canónica
 
 **Todos los importes se almacenan y calculan en EUR.** El backend nunca sabe de otras

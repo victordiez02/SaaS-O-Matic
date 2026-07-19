@@ -1,8 +1,6 @@
 // Núcleo del cliente HTTP
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
-/** Liveness del backend. */
-export const API_BASE = BASE_URL;
 /** Endpoints de negocio (spec 02). Sin barra final: `/customers/` responde 307. */
 export const API_V1 = `${BASE_URL}/v1`;
 

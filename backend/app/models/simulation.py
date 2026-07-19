@@ -6,7 +6,7 @@ inmutabilidad. Los importes viajan como `decimal.Decimal` gracias a `Numeric`
 con `asdecimal=True`; el redondeo se controla en el servicio de pricing, no aquí.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -21,15 +21,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base
+from app.db.base import Base, utcnow
 
 if TYPE_CHECKING:
     from app.models.customer import Customer
-
-
-def _utcnow() -> datetime:
-    """Marca temporal actual en UTC (los timestamps se guardan siempre en UTC)."""
-    return datetime.now(timezone.utc)
 
 
 class Simulation(Base):
@@ -60,7 +55,7 @@ class Simulation(Base):
         Text, nullable=False, default="EUR", server_default=text("'EUR'")
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=_utcnow
+        DateTime, nullable=False, default=utcnow
     )
 
     customer: Mapped["Customer"] = relationship(back_populates="simulations")

@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom";
 import BackLink from "../components/BackLink";
 import CustomerForm from "../components/CustomerForm";
 
-/**
- * Página fina sobre el `CustomerForm` que ya existía: le da destino al CTA del
- * estado vacío del índice. El formulario no se toca en esta sesión.
- */
+/** Vista de alta de cliente (spec 04): envuelve `CustomerForm` con navegación de vuelta al índice. */
 export default function NewCustomer() {
   const navigate = useNavigate();
 

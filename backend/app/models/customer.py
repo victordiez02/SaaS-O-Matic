@@ -5,17 +5,12 @@ negocio: la normalización del `tax_id` y la validación fiscal viven en las cap
 schema/validators, no aquí.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import DateTime, Integer, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base
-
-
-def _utcnow() -> datetime:
-    """Marca temporal actual en UTC (los timestamps se guardan siempre en UTC)."""
-    return datetime.now(timezone.utc)
+from app.db.base import Base, utcnow
 
 
 class Customer(Base):
@@ -30,7 +25,7 @@ class Customer(Base):
     country: Mapped[str] = mapped_column(Text, nullable=False)
     plan: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=_utcnow
+        DateTime, nullable=False, default=utcnow
     )
 
     # Relación 1:N. El borrado en cascada real lo garantiza la FK con
