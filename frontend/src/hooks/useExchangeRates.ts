@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchExchangeRates, type ExchangeRates } from "../api/exchangeRates";
 
@@ -22,9 +22,11 @@ function loadRates(): Promise<ExchangeRates> {
   return inFlight;
 }
 
+export type RatesStatus = "loading" | "retrying" | "error" | "success";
+
 export interface UseExchangeRates {
   rates: ExchangeRates | null; // base EUR, o `null` mientras cargan o si falló la petición
-  loading: boolean;
+  status: RatesStatus;
   error: string | null;
   convert: (amountEUR: number, currency: string) => number; // EUR a la divisa pedida
   retry: () => void;
@@ -35,6 +37,7 @@ export function useExchangeRates(): UseExchangeRates {
   const [loading, setLoading] = useState(cachedRates === null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const hasFailedBeforeRef = useRef(false);
 
   useEffect(() => {
     if (cachedRates) {
@@ -46,16 +49,19 @@ export function useExchangeRates(): UseExchangeRates {
     setLoading(true);
     loadRates()
       .then((loaded) => {
-        if (!cancelled) setRates(loaded);
+        if (cancelled) return;
+        setRates(loaded);
+        setError(null);
+        hasFailedBeforeRef.current = false;
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "No se pudieron cargar los tipos de cambio",
-          );
-        }
+        if (cancelled) return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : "No se pudieron cargar los tipos de cambio",
+        );
+        hasFailedBeforeRef.current = true;
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -65,11 +71,10 @@ export function useExchangeRates(): UseExchangeRates {
     };
   }, [attempt]);
 
-  /** Vuelve a pedir los tipos tras un fallo: invalida la caché y relanza el efecto. */
+  // Vuelve a pedir los tipos tras un fallo: invalida la caché y relanza el efecto
   const retry = useCallback(() => {
     cachedRates = null;
     inFlight = null;
-    setError(null);
     setAttempt((n) => n + 1);
   }, []);
 
@@ -82,5 +87,13 @@ export function useExchangeRates(): UseExchangeRates {
     [rates],
   );
 
-  return { rates, loading, error, convert, retry };
+  const status: RatesStatus = loading
+    ? hasFailedBeforeRef.current
+      ? "retrying"
+      : "loading"
+    : error
+      ? "error"
+      : "success";
+
+  return { rates, status, error, convert, retry };
 }

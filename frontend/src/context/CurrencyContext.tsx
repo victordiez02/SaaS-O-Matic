@@ -7,14 +7,14 @@ import {
   type ReactNode,
 } from "react";
 
-import { useExchangeRates } from "../hooks/useExchangeRates";
+import { useExchangeRates, type RatesStatus } from "../hooks/useExchangeRates";
 import { formatMoney } from "../utils/format";
 
 /** Divisas ofrecidas (spec 04). Ampliable: cualquiera que devuelva er-api. */
 export const CURRENCIES = ["EUR", "USD", "GBP"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
-export type RatesStatus = "loading" | "error" | "success";
+export type { RatesStatus };
 
 interface CurrencyContextValue {
   currency: Currency;
@@ -28,12 +28,13 @@ interface CurrencyContextValue {
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null);
 
-/** Estado de divisa compartido por toda la app */
+/**
+ * Estado de divisa compartido por toda la app (conversión SOLO de
+ * presentación, se convierten justo antes de pintarlos).
+ */
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState<Currency>("EUR");
-  const { loading, error, convert, retry } = useExchangeRates();
-
-  const status: RatesStatus = loading ? "loading" : error ? "error" : "success";
+  const { status, error, convert, retry } = useExchangeRates();
 
   const currency: Currency = status === "success" ? selected : "EUR";
 

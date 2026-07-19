@@ -1,6 +1,10 @@
 import { LoaderCircle, TriangleAlert } from "lucide-react";
 
-import { CURRENCIES, useCurrency, type Currency } from "../context/CurrencyContext";
+import {
+  CURRENCIES,
+  useCurrency,
+  type Currency,
+} from "../context/CurrencyContext";
 import { Button } from "./ui/button";
 import {
   Select,
@@ -15,21 +19,41 @@ export default function CurrencySelector() {
   const { currency, setCurrency, status, error, retry } = useCurrency();
 
   return (
-    <div className="flex items-center gap-1.5">
-      {status === "error" && (
-        // La app nunca se bloquea por la API externa: se avisa, se sigue en EUR
-        // y se ofrece reintentar (spec 04).
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={retry}
-          title={`Tipos de cambio no disponibles, mostrando EUR (${error}). Reintentar`}
-          className="gap-1.5 text-destructive hover:text-destructive"
+    <div className="flex items-center gap-2">
+      {(status === "error" || status === "retrying") && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-1.5 text-xs"
         >
-          <TriangleAlert className="size-3.5" />
-          <span className="hidden text-xs sm:inline">Reintentar tipos</span>
-        </Button>
+          {status === "retrying" ? (
+            <>
+              <LoaderCircle className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+              <span className="hidden text-muted-foreground sm:inline">
+                Reintentando…
+              </span>
+            </>
+          ) : (
+            <>
+              <TriangleAlert className="size-3.5 shrink-0 text-destructive" />
+              <span
+                className="hidden text-destructive sm:inline"
+                title={error ?? undefined}
+              >
+                Sin tipos de cambio, mostrando EUR
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={retry}
+                className="h-6 px-1.5 text-xs text-destructive hover:text-destructive"
+              >
+                Reintentar
+              </Button>
+            </>
+          )}
+        </div>
       )}
 
       <Select
